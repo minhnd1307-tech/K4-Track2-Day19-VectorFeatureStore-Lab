@@ -72,7 +72,8 @@ for i, args in enumerate(planner.plan(demo_q), 1):
 #
 # Đây là chỗ dễ đo gian lận nhất. Nếu agent được lấy 32 doc còn single-shot chỉ
 # 16, agent thắng vì *ngân sách*, không phải vì *chiến lược*. Ở đây cả hai đều
-# lấy đúng **16 document** — chỉ khác cách chia.
+# cùng hạn mức **16 document** — chia cả phần dư cho các sub-query. Số doc
+# unique thực nhận có thể thấp hơn vì trùng lặp hoặc filter thiếu kết quả.
 #
 # Ngoài `recall`, ta đo thêm **`balance`**: trong 16 doc lấy về, hai vế của câu
 # hỏi được phủ đều đến đâu (1.00 = đều hoàn hảo, 0.00 = bỏ hẳn một vế).
@@ -85,7 +86,9 @@ BUDGET = 16
 def evaluate(agent, label):
     rec, bal, calls, ms = [], [], [], []
     for q in queries:
+        assert sum(a.top_k for a in agent.planner.plan(q["question"])) == BUDGET
         r = agent.answer(q["question"])
+        assert len(r.doc_ids) <= BUDGET
         truth, got = set(q["relevant_doc_ids"]), set(r.doc_ids)
         rec.append(len(truth & got) / len(truth))
         a, b = len(set(q["gold_a"]) & got), len(set(q["gold_b"]) & got)

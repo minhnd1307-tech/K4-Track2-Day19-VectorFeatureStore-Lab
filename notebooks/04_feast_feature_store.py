@@ -17,6 +17,7 @@
 # %%
 import _setup  # noqa: F401
 import subprocess
+import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -51,8 +52,10 @@ def make_user_profile(n_users: int = 100) -> pl.DataFrame:
 
 
 def make_item_popularity(n_items: int = 1000) -> pl.DataFrame:
+    corpus = REPO_ROOT / "data" / "corpus_vn.jsonl"
+    doc_ids = [json.loads(line)["doc_id"] for line in corpus.read_text(encoding="utf-8").splitlines()]
     return pl.DataFrame({
-        "doc_id": [f"item_{i:04d}" for i in range(n_items)],
+        "doc_id": doc_ids[:n_items],
         "click_count_24h": [(i * 13) % 500 for i in range(n_items)],
         "ctr_7d": [round(((i * 7) % 100) / 100.0, 3) for i in range(n_items)],
         "avg_dwell_seconds": [10.0 + (i * 0.7) % 90 for i in range(n_items)],
@@ -94,6 +97,9 @@ if res.stderr:
     print("STDERR:")
     print(res.stderr)
 assert res.returncode == 0, f"feast apply failed: {res.stderr}"
+views = subprocess.run(["feast", "feature-views", "list"], cwd=str(FEAST_DIR),
+                       capture_output=True, text=True, check=True)
+print(views.stdout)
 
 # %% [markdown]
 # ## 3. `feast materialize-incremental` — load offline → online
@@ -127,6 +133,16 @@ import time
 from feast import FeatureStore
 
 fs = FeatureStore(repo_path=str(FEAST_DIR))
+assert len(fs.list_feature_views()) == 3
+
+# Show actual persisted rows: SQLite stores one row per entity and feature.
+if fs.config.online_store.type == "sqlite":
+    import sqlite3
+    with sqlite3.connect(FEAST_DIR / "online_store.db") as online:
+        for table in ("lab19_item_popularity_features", "lab19_user_profile_features",
+                      "lab19_query_velocity_features"):
+            count = online.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
+            print(f"Materialized SQLite rows: {table} = {count}")
 
 REQUEST_FEATURES = [
     "user_profile_features:reading_speed_wpm",
@@ -147,7 +163,7 @@ print(f"Single lookup: {single_latency_ms:.2f}ms")
 print({k: v[0] for k, v in features.items()})
 
 # %% [markdown]
-# ## 5. TODO — Batch latency benchmark (100 lookups, P99)
+# ## 5. Batch latency benchmark (100 lookups, P99)
 
 # %%
 latencies: list[float] = []
@@ -185,7 +201,7 @@ else:
 import pandas as pd
 entity_df = pd.DataFrame({
     "user_id": ["u_001", "u_002", "u_003"],
-    "event_timestamp": [NOW - timedelta(hours=2), NOW - timedelta(hours=1), NOW],
+    "event_timestamp": [NOW - timedelta(minutes=30), NOW - timedelta(minutes=15), NOW],
 })
 
 historical = fs.get_historical_features(
@@ -196,6 +212,7 @@ historical = fs.get_historical_features(
     ],
 ).to_df()
 print(historical)
+assert len(historical) == 3 and historical["reading_speed_wpm"].notna().all()
 
 # %% [markdown]
 # ## Deliverable evidence

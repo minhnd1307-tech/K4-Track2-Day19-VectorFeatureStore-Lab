@@ -35,6 +35,15 @@ def test_budget_is_split_not_multiplied():
     assert sum(a.top_k for a in SingleShotPlanner(budget=budget).plan("x")) <= budget
 
 
+def test_budget_remainder_and_many_parts_are_preserved():
+    question = "cloud computing và cân bằng tải và Kafka streaming"
+    plan = RuleBasedPlanner(budget=16).plan(question)
+    assert [a.top_k for a in plan] == [6, 5, 5]
+    plan = RuleBasedPlanner(budget=2).plan(question)
+    assert sum(a.top_k for a in plan) == 2
+    assert "Kafka streaming" in plan[-1].query
+
+
 def test_use_filters_false_emits_no_filters():
     plan = RuleBasedPlanner(budget=8, use_filters=False).plan("cân bằng tải giữa nhiều region")
     assert all(a.topic is None and a.since_year is None for a in plan)

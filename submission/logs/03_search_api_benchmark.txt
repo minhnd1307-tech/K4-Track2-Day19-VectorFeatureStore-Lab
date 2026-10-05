@@ -1,0 +1,24 @@
+{'ready': True, 'n_docs': 1000}
+
+D:\AI Vin\K4-Track2-Day19-VectorFeatureStore-Lab\.venv\Lib\site-packages\tqdm\auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+  from .autonotebook import tqdm as notebook_tqdm
+
+query='cloud computing tự động mở rộng', mode=hybrid, top_k=10
+latency_ms: 29.0
+top-3 hits:
+       cloud_016  score=0.0325  Điện toán đám mây: tự động mở rộng theo lưu lượng
+       cloud_072  score=0.0323  Điện toán đám mây: tự động mở rộng theo lưu lượng
+       cloud_053  score=0.0315  Điện toán đám mây: tự động mở rộng theo lưu lượng
+
+  mode            P50      P95      P99  P99(wall)
+
+  keyword       3.8ms    5.3ms    7.4ms     12.6ms
+
+  semantic     19.3ms   26.0ms   48.7ms     52.4ms
+
+  hybrid       29.9ms   43.9ms   49.3ms     53.5ms
+
+Hybrid P99 server-side: 49.3ms
+PASS — hybrid P99 < 50ms (49.3ms)
+
+API server stopped

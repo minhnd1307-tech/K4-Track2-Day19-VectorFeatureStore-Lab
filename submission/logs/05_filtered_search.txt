@@ -1,0 +1,26 @@
+docs: 1000   vectors: (1000, 384)
+payload mẫu: {'doc_id': 'frontend_074', 'topic': 'frontend', 'tenant': 'globex', 'access': 'public', 'published': '2023-11-04'}
+
+filter               sel%    post    fANN  post_ms  fann_ms
+không filter        100.0    1.00    1.00      3.8      nan
+access=internal      23.6    0.20    1.00      2.7     16.2
+tenant=acme          31.9    0.20    1.00      3.4     16.2
+published ≥ 2026     13.5    0.20    1.00      2.9     16.7
+
+acme AND ≥2026        3.8    0.00    1.00      2.8     20.2
+
+selectivity = 3.8%  của 1000 doc
+
+  fetch_k   recall   % corpus quét
+       10     0.03              1%
+       50     0.27              5%
+      200     0.80             20%
+
+      500     1.00             50%
+     1000     1.00            100%
+
+     fANN     1.00              1%
+
+tenant=acme      sel= 31.9%  post=0.20  fANN=1.00
+tenant=globex    sel= 34.7%  post=0.60  fANN=1.00
+tenant=initech   sel= 33.4%  post=0.20  fANN=1.00

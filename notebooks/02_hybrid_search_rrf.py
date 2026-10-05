@@ -40,7 +40,7 @@ tokenized = [(d["title"] + " " + d["text"]).lower().split() for d in docs]
 bm25 = BM25Okapi(tokenized)
 
 # Vector
-embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", threads=2)
 client = QdrantClient(":memory:")
 client.create_collection(
     collection_name="lab19",
@@ -81,7 +81,7 @@ def search_semantic(query: str, top_k: int = TOP_K) -> list[str]:
 
 
 # %% [markdown]
-# ## 3. TODO — implement Reciprocal Rank Fusion
+# ## 3. implement Reciprocal Rank Fusion
 #
 # Công thức (deck §3):
 #
@@ -100,7 +100,7 @@ def search_hybrid(query: str, top_k: int = TOP_K, rrf_k: int = RRF_K) -> list[st
     kw_ids = search_keyword(query, depth)
     sem_ids = search_semantic(query, depth)
 
-    # TODO: implement RRF fusion below.
+    # Fuse both rankings with the 1-based RRF formula.
     # Hint: dict[doc_id, float] cộng 1/(rrf_k + rank) từ mỗi retriever.
     # rank starts at 1, not 0.
     rrf: dict[str, float] = {}

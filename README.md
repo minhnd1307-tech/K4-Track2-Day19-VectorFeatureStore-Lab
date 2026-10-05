@@ -24,6 +24,20 @@ Build hybrid search API + Feast feature store hoàn chỉnh, đo Precision@10 v�
 
 ## Quick Start — Lite (recommended)
 
+**Windows / PowerShell:**
+
+```powershell
+powershell -File setup-lite.ps1
+.venv/Scripts/python.exe scripts/execute_notebooks.py
+.venv/Scripts/python.exe scripts/benchmark.py
+.venv/Scripts/python.exe bonus/demo.py
+.venv/Scripts/python.exe scripts/capture_evidence.py
+```
+
+`execute_notebooks.py` saves executed `.ipynb` files and logs under
+`submission/logs/`. `capture_evidence.py` uses headless Microsoft Edge to capture
+the actual notebook outputs. See `submission/RESULTS.md` for measured results.
+
 ```bash
 git clone https://github.com/<your-username>/K4-Track2-Day19-VectorFeatureStore-Lab.git
 cd K4-Track2-Day19-VectorFeatureStore-Lab

@@ -1,0 +1,55 @@
+events   : 9019
+users    : 200
+sessions : 8141  (~1.1 event/session)
+click rate: 0.569
+
+  user_id                     event_timestamp       topic  session_id  \
+0   u_048 2026-07-01 00:00:34.132897690+00:00  networking  s_048_0000   
+1   u_080 2026-07-01 00:02:11.225255095+00:00    data_eng  s_080_0000   
+2   u_093 2026-07-01 00:04:41.999966662+00:00       cloud  s_093_0000   
+
+   query_len  results_shown  clicked  
+0         10             15        0  
+1         23             12        0  
+2         16             13        1  
+      searches_1h  searches_24h  searches_7d  query_len_vs_user_avg  query_len_delta  seconds_since_last
+mean         0.07          1.69        10.66                   1.03            -0.01            55695.74
+50%          0.00          1.00        11.00                   1.01             0.00            34931.18
+max          2.00         10.00        31.00                   8.00            21.00           888567.46
+
+Topic frequency (fit on train): {'data_eng': 0.118, 'devops': 0.11, 'database': 0.109, 'ai_ml': 0.105, 'frontend': 0.102, 'cloud': 0.101, 'security': 0.092, 'networking': 0.089, 'mobile': 0.088, 'backend': 0.087}
+
+Embedding feature shape: (384,)
+Embedding feature first 8 dimensions: [-0.03689582 -0.02144159  0.01482398 -0.06990509  0.05588206  0.02568264
+ -0.00824575 -0.00615806]
+
+feature                      train  holdout     gap
+searches_24h                 0.592    0.580  +0.012
+searches_7d                  0.646    0.666  -0.020
+seconds_since_last           0.435    0.435  +0.000
+
+── key = session_id (cardinality rất cao, ~1 event/nhóm) ──
+      encoding  train_auc  test_auc    gap
+     frequency      0.521     0.516  0.005
+  target-naive      0.999     0.522  0.477
+target-in-fold      0.519     0.522 -0.003
+
+── key = user_id (cardinality thấp hơn, ~45 event/nhóm) ──
+      encoding  train_auc  test_auc   gap
+     frequency      0.726     0.708 0.018
+  target-naive      0.749     0.698 0.052
+target-in-fold      0.714     0.698 0.016
+
+training rows                    : 3535
+dòng bị rò (giá trị ghi SAU nhãn): 98.2%
+
+AUC với latest-value join        : 0.715   ← dùng tương lai
+AUC với point-in-time join       : 0.595   ← phục vụ được thật
+
+'lift ảo' sẽ mất khi lên production: +0.120 AUC
+
+feast apply + materialize OK
+
+user=u_000  avg7d=   3,566,076  ratio=  0.03  spike=0
+user=u_000  avg7d=   3,566,076  ratio=  4.21  spike=1
+user=u_001  avg7d=   3,718,992  ratio=  0.07  spike=0

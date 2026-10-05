@@ -1,0 +1,52 @@
+======================================================================
+Bonus Challenge: HybridMemoryAgent 5-Query Demo
+======================================================================
+Profile source: Feast online store
+
+1. Ingesting user notes into episodic memory (Vector Store)...
+User isolation self-check: PASS
+   Indexed 5 notes for user u_001.
+
+----------------------------------------------------------------------
+Query 1 [Simple episodic recall]
+Query: 'Tôi đã đọc gì về Kubernetes?'
+Assembled Context:
+User likes cloud reading at 187 wpm (Language: vi).
+Recent activity: 11 queries in last hour across 4 distinct topics.
+Top memories: Kubernetes deployment ghi chú: Cần cấu hình Horizontal Pod Autoscaler (HPA) kết hợp Prometheus custom metrics để scale theo số lượng request. | Tối ưu chi phí hạ tầng AWS: Sử dụng Spot Instances cho worker node kết hợp Karpenter để tự động co giãn cụm compute linh hoạt theo tải.
+
+----------------------------------------------------------------------
+Query 2 [Profile-guided context]
+Query: 'Recommend đọc gì tiếp'
+Assembled Context:
+User likes cloud reading at 187 wpm (Language: vi).
+Recent activity: 11 queries in last hour across 4 distinct topics.
+Top memories: Cơ sở dữ liệu phân tán: Sử dụng PostgreSQL read replicas và PgBouncer để tối ưu connection pooling cho high concurrency. | Tối ưu chi phí hạ tầng AWS: Sử dụng Spot Instances cho worker node kết hợp Karpenter để tự động co giãn cụm compute linh hoạt theo tải.
+
+----------------------------------------------------------------------
+Query 3 [Fresh activity velocity]
+Query: 'Tôi đang quan tâm gì gần đây?'
+Assembled Context:
+User likes cloud reading at 187 wpm (Language: vi).
+Recent activity: 11 queries in last hour across 4 distinct topics.
+Top memories: Tối ưu chi phí hạ tầng AWS: Sử dụng Spot Instances cho worker node kết hợp Karpenter để tự động co giãn cụm compute linh hoạt theo tải. | Cơ sở dữ liệu phân tán: Sử dụng PostgreSQL read replicas và PgBouncer để tối ưu connection pooling cho high concurrency.
+
+----------------------------------------------------------------------
+Query 4 [Paraphrase query]
+Query: 'Tài liệu về tự động mở rộng hạ tầng?'
+Assembled Context:
+User likes cloud reading at 187 wpm (Language: vi).
+Recent activity: 11 queries in last hour across 4 distinct topics.
+Top memories: Cơ sở dữ liệu phân tán: Sử dụng PostgreSQL read replicas và PgBouncer để tối ưu connection pooling cho high concurrency. | Tối ưu chi phí hạ tầng AWS: Sử dụng Spot Instances cho worker node kết hợp Karpenter để tự động co giãn cụm compute linh hoạt theo tải.
+
+----------------------------------------------------------------------
+Query 5 [Mixed query - hybrid + profile]
+Query: 'Cho tôi summary cloud security'
+Assembled Context:
+User likes cloud reading at 187 wpm (Language: vi).
+Recent activity: 11 queries in last hour across 4 distinct topics.
+Top memories: Kiến trúc Cloud Security: Quản lý secret bằng HashiCorp Vault và tuân thủ mô hình Zero Trust Network Access (ZTNA) cho toàn bộ VPC peering. | Tối ưu chi phí hạ tầng AWS: Sử dụng Spot Instances cho worker node kết hợp Karpenter để tự động co giãn cụm compute linh hoạt theo tải.
+
+======================================================================
+DEMO SUCCESS: All 5 queries completed successfully. Exit 0.
+======================================================================

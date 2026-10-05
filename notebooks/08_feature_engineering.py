@@ -28,6 +28,7 @@
 # %%
 import _setup  # noqa: F401
 import subprocess
+import sys
 import warnings
 from pathlib import Path
 
@@ -69,6 +70,20 @@ feat = window_aggregates(events)
 cols = ["searches_1h", "searches_24h", "searches_7d",
         "query_len_vs_user_avg", "query_len_delta", "seconds_since_last"]
 print(feat[cols].describe().loc[["mean", "50%", "max"]].round(2).to_string())
+
+# %% [markdown]
+# ### Họ 5–6: frequency encoding và embedding làm feature
+# Frequency được fit trên train; vector văn bản có thể cấp trực tiếp cho model
+# downstream. Embedding không dùng nhãn clicked nên không gây target leakage.
+
+# %%
+from app.embeddings import Embedder
+train_events = events.iloc[:int(len(events) * 0.7)]
+freq = train_events.topic.value_counts(normalize=True)
+print("Topic frequency (fit on train):", freq.round(3).to_dict())
+user_vector = next(Embedder().embed(["cloud computing và tự động mở rộng"]))
+print("Embedding feature shape:", user_vector.shape)
+print("Embedding feature first 8 dimensions:", user_vector[:8])
 
 # %% [markdown]
 # ## 3. Feature trung thực trông như thế nào?
@@ -158,7 +173,7 @@ print(f"\n'lift ảo' sẽ mất khi lên production: {auc_lat - auc_pit:+.3f} A
 
 # %%
 repo = ROOT / "app" / "feast_repo_ondemand"
-subprocess.run(["python", str(ROOT / "scripts" / "gen_spend.py")], check=True,
+subprocess.run([sys.executable, str(ROOT / "scripts" / "gen_spend.py")], check=True,
                capture_output=True)
 subprocess.run(["feast", "apply"], cwd=repo, check=True, capture_output=True)
 subprocess.run(["feast", "materialize-incremental", "2027-01-01T00:00:00"],

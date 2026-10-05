@@ -17,6 +17,7 @@
 import _setup  # noqa: F401
 import statistics
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -31,13 +32,14 @@ import httpx
 # %%
 ROOT = Path(_setup.__file__).resolve().parent.parent
 proc = subprocess.Popen(
-    ["uvicorn", "app.main:app", "--port", "8000", "--log-level", "warning"],
+    [sys.executable, "-m", "uvicorn", "app.main:app", "--port", "8000", "--log-level", "warning"],
     cwd=str(ROOT),
+    creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
 )
 
 # Đợi server up + warm (Searcher.from_corpus loads embeddings + indexes 1000 docs)
 URL = "http://localhost:8000"
-for _ in range(60):
+for _ in range(180):
     try:
         r = httpx.get(f"{URL}/healthz", timeout=2.0)
         if r.status_code == 200 and r.json().get("ready"):
@@ -46,7 +48,8 @@ for _ in range(60):
         pass
     time.sleep(1)
 else:
-    raise RuntimeError("API didn't become ready within 60s")
+    proc.terminate()
+    raise RuntimeError("API didn't become ready within 180s")
 
 print(httpx.get(f"{URL}/healthz").json())
 
@@ -57,13 +60,16 @@ print(httpx.get(f"{URL}/healthz").json())
 r = httpx.get(f"{URL}/search", params={"q": "cloud computing tự động mở rộng", "mode": "hybrid"})
 r.raise_for_status()
 body = r.json()
+from app.main import SearchResponse
+SearchResponse.model_validate(body)
+print(f"query={body['query']!r}, mode={body['mode']}, top_k={body['top_k']}")
 print(f"latency_ms: {body['latency_ms']:.1f}")
 print(f"top-3 hits:")
 for h in body["hits"][:3]:
     print(f"  {h['doc_id']:>14}  score={h['score']:.4f}  {h['title']}")
 
 # %% [markdown]
-# ## 3. TODO — Latency benchmark (100 queries × 3 modes)
+# ## 3. Latency benchmark (100 queries × 3 modes)
 #
 # Dùng 50 golden queries × 2 reps = 100 calls/mode. Ghi nhận latency từ
 # `body["latency_ms"]` (server-side, đã trừ network) HOẶC từ wall-clock httpx
@@ -88,10 +94,13 @@ def percentile(values: list[float], p: float) -> float:
 def benchmark_mode(mode: str, reps: int = 2) -> dict[str, float]:
     server_latencies: list[float] = []
     wall_latencies: list[float] = []
-    for _ in range(reps):
-        for q in golden:
+    with httpx.Client(base_url=URL, timeout=30) as session:
+        for q in golden[:10]:
+            session.get("/search", params={"q": q["query"], "mode": mode}).raise_for_status()
+        for q in golden * reps:
             t0 = time.perf_counter()
-            r = httpx.get(f"{URL}/search", params={"q": q["query"], "mode": mode})
+            r = session.get("/search", params={"q": q["query"], "mode": mode})
+            r.raise_for_status()
             wall_latencies.append((time.perf_counter() - t0) * 1000)
             server_latencies.append(r.json()["latency_ms"])
     return {
